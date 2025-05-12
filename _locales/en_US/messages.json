@@ -1,0 +1,28 @@
+{
+  "ext_name": {
+    "message": "Form Filler"
+  },
+  "ext_description": {
+    "message": "Quickly fill out web forms from your Google Sheets spreadsheets."
+  },
+  "ext_action_title": {
+    "message": "Open Form Filler on sidebar"
+  },
+  "cxt_menu_title": {
+    "message": "Open Form Filler"
+  },
+  "error": {
+    "message": "Erro: $detail$",
+    "placeholders": {
+      "detail": {
+        "content": "$1"
+      }
+    }
+  },
+  "access_denied": {
+    "message": "Acesso negado: é necessário estar logado com sua conta Google."
+  },
+  "not_auth": {
+    "message": "Not authenticated. Please sign in with your Google account."
+  }
+}

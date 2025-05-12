@@ -1,0 +1,28 @@
+{
+  "ext_name": {
+    "message": "Form Filler"
+  },
+  "ext_description": {
+    "message": "Preencha rapidamente formulários da web a partir de suas planilhas do Google Sheets."
+  },
+  "ext_action_title": {
+    "message": "Abrir Form Filler na barra lateral"
+  },
+  "cxt_menu_title": {
+    "message": "Abrir Form Filler"
+  },
+  "error": {
+    "message": "Erro: $detail$",
+    "placeholders": {
+      "detail": {
+        "content": "$1"
+      }
+    }
+  },
+  "access_denied": {
+    "message": "Acesso negado: é necessário estar logado com sua conta Google."
+  },
+  "not_auth": {
+    "message": "Não autenticado. Por favor, faça login com sua conta Google."
+  }
+}
