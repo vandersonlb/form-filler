@@ -19,8 +19,8 @@
       }
     }
   },
-  "access_denied": {
-    "message": "Acesso negado: é necessário estar logado com sua conta Google."
+  "logout_success": {
+    "message": "Logout realizado com sucesso."
   },
   "not_auth": {
     "message": "Não autenticado. Por favor, faça login com sua conta Google."

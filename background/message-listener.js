@@ -63,8 +63,8 @@ function fetchSheetData(token, url) {
     response
       .then(res => res.json())
       .then(json => {
-        if (json.error)reject(json.error.code + ": " + json.error.message);
-        resolve(json.values);
+        if (json.error) reject(json.error.code + ": " + json.error.message);
+        resolve(json);
       })
   });
 }
