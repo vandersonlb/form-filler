@@ -12,6 +12,6 @@ export default class UIController {
     el.classList.remove(error, success);
     el.classList.add(mode);
     el.textContent = message;
-    setTimeout(() => (el.style.display = "none"), 2500);
+    setTimeout(() => (el.style.display = "none"), 3500);
   }
 }

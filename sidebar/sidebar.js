@@ -1,6 +1,7 @@
 import UIController from "../controllers/UIController.js";
 import AuthService from "../services/AuthService.js";
 import SheetService from "../services/SheetService.js";
+import FormService from "../services/FormService.js";
 
 document.getElementById("login").addEventListener("click", async () => {
   try {
@@ -32,5 +33,15 @@ document.getElementById("fetch").addEventListener("click", async () => {
     UIController.showStatus(`Dados recebidos: ${JSON.stringify(values)}`);
   } catch (err) {
     UIController.showStatus(err.message, true);  // Colocar msg mais explicativa para o usuário.
+  }
+});
+
+document.getElementById("fetch-form").addEventListener("click", async () => {
+  const result = await FormService.getFormFromActiveTab();
+  if (result.found) {
+    UIController.showStatus(`${JSON.stringify(result.fields)}`);
+    teste(result.fields);
+  } else {
+    UIController.showStatus(result.error || "Nenhum formulário encontrado.", true);
   }
 });

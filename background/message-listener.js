@@ -1,6 +1,11 @@
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   console.log("Message received:", request.action);
 
+  if(request.action === "log") {
+    console.log(request.payload);
+    return true;
+  }
+
   if (request.action === "getAuthToken") {
     getAuthToken()
       .then((res) => sendResponse({ error: null, token: res }))

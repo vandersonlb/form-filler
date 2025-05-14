@@ -1,0 +1,15 @@
+export default class FormService {
+  static async getFormFromActiveTab() {
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+
+    return new Promise((resolve) => {
+      chrome.tabs.sendMessage(tab.id, { action: "scanForForm" }, (response) => {
+        if (chrome.runtime.lastError) {
+          resolve({ found: false, error: chrome.runtime.lastError.message });
+        } else {
+          resolve(response);
+        }
+      });
+    });
+  }
+}
