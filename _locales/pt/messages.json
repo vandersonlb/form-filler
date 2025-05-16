@@ -24,5 +24,8 @@
   },
   "not_auth": {
     "message": "Não autenticado. Por favor, faça login com sua conta Google."
+  },
+    "form_not_found": {
+    "message": "Nenhum formulário encontrado."
   }
 }

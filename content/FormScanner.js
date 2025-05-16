@@ -1,16 +1,15 @@
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === "scanForForm") {
-    const form = document.querySelector("form");
+    const fields = detectFormFields();
 
-    if (form || form.elements.length > 0) {
-      const fields = detectFormFields();
-      sendResponse({ found: true, fields });
-    } else {
+    if (fields.length == 0) {
       sendResponse({ found: false });
-    }
-  }
+      return true;
+    } 
 
-  return true;
+    sendResponse({ found: true, fields });
+    return true;
+  }
 });
 
 // Função para detetar campos de formulário na página de forma mais robusta
