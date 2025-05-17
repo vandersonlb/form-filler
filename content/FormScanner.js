@@ -10,6 +10,20 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     sendResponse({ found: true, fields });
     return true;
   }
+
+  if (request.action === "getField") {
+    
+    let {inputType, originalId, originalName} = request.payload;
+    let field = retrieveField(inputType, originalId, originalName);
+
+    if(!field) {
+      endResponse({ found: false });
+      return true;
+    }
+
+    sendResponse({ found: true, field });
+    return true;
+  }
 });
 
 // Função para detetar campos de formulário na página de forma mais robusta
@@ -92,4 +106,22 @@ function detectFormFields() {
   console.log("Campos detetados (versão robusta):", fields);
   // Envia apenas dados serializáveis e necessários para o mapeamento na sidebar
   return fields.map(f => ({uniqueId: f.uniqueId, originalId: f.originalId, type: f.type, label: f.label })); 
+}
+
+function retrieveField(type, id, name) {
+  if (type !== "textarea") {
+    type = `input[type='${type}']`;
+  }
+
+  let el = document.querySelector(`${type}#${id}`);
+  
+  if (!el) {
+    el = Array.from(document.querySelectorAll(type)).find(e => e.getAttribute("name") === name);
+  }
+
+  el.value = "Campo preenchido automaticamente!";
+
+  chrome.runtime.sendMessage({ action: "log", payload: el.value });
+
+  return el || null;
 }
