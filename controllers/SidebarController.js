@@ -5,49 +5,49 @@ import FormService from "../services/FormService.js";
 
 export default class SidebarController {
   constructor({
-    loginButton,
-    logoutButton,
-    getTokenButton,
-    getSheetDataButton,
+    // loginButton,
+    // logoutButton,
+    // getTokenButton,
+    // getSheetDataButton,
     scanTabFormButton,
-    showMappingUIButton,
-    showMappingButton,
+    // showMappingUIButton,
+    // showMappingButton,
     mappingDiv,
-    formatSheetData,
-    testeButton
+    // formatSheetData,
+    // testeButton
   }) {
-    this.loginButton = loginButton;
-    this.logoutButton = logoutButton;
-    this.getTokenButton = getTokenButton;
-    this.getSheetDataButton = getSheetDataButton;
+    // this.loginButton = loginButton;
+    // this.logoutButton = logoutButton;
+    // this.getTokenButton = getTokenButton;
+    // this.getSheetDataButton = getSheetDataButton;
     this.scanTabFormButton = scanTabFormButton;
-    this.showMappingUIButton = showMappingUIButton;
-    this.showMappingButton = showMappingButton;
+    // this.showMappingUIButton = showMappingUIButton;
+    // this.showMappingButton = showMappingButton;s
     this.mappingDiv = mappingDiv;
-    this.formatSheetData = formatSheetData;
-    this.testeButton = testeButton;
+    // this.formatSheetData = formatSheetData;
+    // this.testeButton = testeButton;
 
-    this.tabInputs = [];
-    this.mapped = [];
-    this.columns = ["nome", "sobrenome", "email"];
-    this.sheetData = [
-      ["nome", "sobrenome", "email", "telefone"],
-      ["Vanderson Luis", "Bonacuore", "vandersonlb@hotmail.com", "1234"],
-      ["Michele Almeida", "Bonacuore", "michele.ads@hotmail.com", "5678"],
-      ["Thomas Almeida", "Bonacuore", "thomasbonacuore@hotmail.com", "3131"],
-    ];
+    // this.tabInputs = [];
+    // this.mapped = [];
+    // this.columns = ["nome", "sobrenome", "email"];
+    // this.sheetData = [
+    //   ["nome", "sobrenome", "email", "telefone"],
+    //   ["Vanderson Luis", "Bonacuore", "vandersonlb@hotmail.com", "1234"],
+    //   ["Michele Almeida", "Bonacuore", "michele.ads@hotmail.com", "5678"],
+    //   ["Thomas Almeida", "Bonacuore", "thomasbonacuore@hotmail.com", "3131"],
+    // ];
   }
 
   init() {
-    this.loginButton.addEventListener("click", this.handleLogin.bind(this));
-    this.logoutButton.addEventListener("click", this.handleLogout.bind(this));
-    this.getTokenButton.addEventListener("click", this.handleGetToken.bind(this));
-    this.getSheetDataButton.addEventListener("click", this.handleGetSheetData.bind(this));
-    this.scanTabFormButton.addEventListener("click", this.handleScanTabForm.bind(this));
-    this.showMappingUIButton.addEventListener("click", this.handleShowMappingUI.bind(this));
-    this.showMappingButton.addEventListener("click", this.handleShowMapping.bind(this));
-    this.formatSheetData.addEventListener("click", this.handleFormatSheetData.bind(this));
-    this.testeButton.addEventListener("click", this.handleTeste.bind(this));
+    // this.loginButton.addEventListener("click", this.handleLogin.bind(this));
+    // this.logoutButton.addEventListener("click", this.handleLogout.bind(this));
+    // this.getTokenButton.addEventListener("click", this.handleGetToken.bind(this));
+    // this.getSheetDataButton.addEventListener("click", this.handleGetSheetData.bind(this));
+    this.scanTabFormButton.addEventListener("click", this.handleShowFields.bind(this));
+    // this.showMappingUIButton.addEventListener("click", this.handleShowMappingUI.bind(this));
+    // this.showMappingButton.addEventListener("click", this.handleShowMapping.bind(this));
+    // this.formatSheetData.addEventListener("click", this.handleFormatSheetData.bind(this));
+    // this.testeButton.addEventListener("click", this.handleShowFormattedData.bind(this));
   }
 
   async handleLogin() {
@@ -76,21 +76,61 @@ export default class SidebarController {
   async handleGetSheetData() {
     const spreadsheetId = "1tiQxklA6YGHtLkrHssPRNMn3VnruidSQFF4FK3-RHwE";
     try {
-      const values = await SheetService.fetchSheetData(spreadsheetId, "A1:Z");  /// Aqui vai ser sheetData
-      UIController.showStatus(`Dados recebidos: ${JSON.stringify(values)}`);
+      const sheetData = await SheetService.fetchSheetData(spreadsheetId, "A1:Z");
+      return sheetData;
     } catch (err) {
       UIController.showStatus(err.message, true);
     }
   }
 
-  async handleScanTabForm() {
-    const result = await FormService.getFormFromActiveTab();
-    if (result.found) {
-      this.tabInputs = result.fields;
-      chrome.runtime.sendMessage({ action: "log", payload: this.tabInputs });
-    } else {
-      UIController.showStatus("Nenhum formulário encontrado.", true);
+  static async scanTabForm() {
+    let result;
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    const url = tab.url.split(/[?#]/)[0];
+    const storageKey = `scan_${url}`;
+
+    try {
+      const stored = await chrome.storage.local.get([storageKey]);
+      if (stored?.[storageKey]?.fields) {
+        result = { found: true, fields: JSON.parse(stored[storageKey].fields) };
+        chrome.runtime.sendMessage({ action: "log", payload: result.fields });
+        return result;
+      }
+    } catch (e) {
+      chrome.runtime.sendMessage({ action: "log", payload: "Erro ao recuperar dados do storage:" + (e && e.message ? e.message : String(e)) });
+      UIController.showStatus("Erro ao recuperar dados do storage: " + (e && e.message ? e.message : String(e)), true);
     }
+
+    result = await FormService.getFormFromActiveTab();
+
+    if (result.found) {
+      UIController.showStatus("Encontrado", result.fields);
+      chrome.runtime.sendMessage({ action: "log", payload: result.fields });
+      SidebarController.saveScanLocalStage(storageKey, url, result.fields);
+      return result;
+    }
+
+    UIController.showStatus("Nenhum formulário encontrado.", true);
+    chrome.runtime.sendMessage({ action: "log", payload: "Nenhum formulário encontrado." });
+  }
+
+  static async saveScanLocalStage(storageKey, url, fields) {
+    try {
+      if (!Array.isArray(fields)) throw new Error("Campos inválidos");
+      fields = JSON.stringify(fields);
+      await chrome.storage.local.set({ [storageKey]: { url, fields } });
+      UIController.showStatus("Dados salvos com sucesso! " + storageKey);
+      chrome.runtime.sendMessage({ action: "log", payload: "Dados salvos com sucesso! " + storageKey });
+    } catch (e) {
+      // console.error("Erro ao salvar dados:", e);
+      chrome.runtime.sendMessage({ action: "log", payload: "Erro ao recuperar dados do storage:" + JSON.parse(e) });
+      UIController.showStatus("Erro ao salvar no localStorage", true);
+    }
+  }
+
+  async handleShowFields() {
+    let result = await SidebarController.scanTabForm();
+    this.mappingDiv.innerHTML = JSON.stringify(result.fields);
   }
 
   handleShowMappingUI() {
@@ -100,24 +140,28 @@ export default class SidebarController {
     }
     this.mappingDiv.innerHTML = "";
     this.tabInputs.forEach((input) => {
-      let mappingComponent = SidebarController.createMapNode(input, this.columns);
+      let mappingComponent = SidebarController.createMappingComponent(input, this.columns);
       this.mappingDiv.appendChild(mappingComponent);
     });
   }
 
   handleShowMapping() {
     var selects = this.mappingDiv.getElementsByTagName("select");
-    this.mapped = SidebarController.getMapping(selects);
+    this.mapped = SidebarController.setMapping(selects);
     chrome.runtime.sendMessage({ action: "log", payload: this.mapped });
   }
 
-  handleFormatSheetData() {
-    var data = SidebarController.getFormattedSheetData(this.sheetData);
-    chrome.runtime.sendMessage({ action: "log", payload: Object.keys(data[0]) });
-    chrome.runtime.sendMessage({ action: "log", payload: data });
-  }
+  // handleFormatSheetData() {
+  //   var data = SidebarController.getFormattedSheetData(this.sheetData);
+  //   chrome.runtime.sendMessage({ action: "log", payload: Object.keys(data[0]) });
+  //   chrome.runtime.sendMessage({ action: "log", payload: data });
+  // }
 
-  async handleTeste() {
+  // handleShowFormattedData() {
+  //   this.mappingDiv.innerHTML = "666";
+  // }
+
+  async handleTeste__() {
     const results = [];
     for (const item of this.mapped) {
       const result = await FormService.getFieldFromActiveTab(item);
@@ -133,17 +177,17 @@ export default class SidebarController {
   }
 
   // Utilitários estáticos
-  static createMapNode(input, options) {
+  static createMappingComponent(input, options) {
     let div = document.createElement("div");
     let label = document.createElement("label");
     label.htmlFor = input.originalId;
     label.innerText = input.label;
     div.appendChild(label);
-    div.appendChild(SidebarController.createSelect(input, options));
+    div.appendChild(SidebarController.createSelectComponent(input, options));
     return div;
   }
 
-  static createSelect(input, options) {
+  static createSelectComponent(input, options) {
     let select = document.createElement("select");
     select.id = input.uniqueId;
     select.setAttribute("data-original-id", input.originalId);
@@ -164,7 +208,7 @@ export default class SidebarController {
     return select;
   }
 
-  static getMapping(list) {
+  static setMapping(list) {
     return [...list]
       .filter((item) => item.value !== "default")
       .map((item) => ({

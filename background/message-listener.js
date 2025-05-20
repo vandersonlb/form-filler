@@ -3,7 +3,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
   if(request.action === "log") {
     console.log(request.payload);
-    return true;
+    return;
   }
 
   if (request.action === "getAuthToken") {

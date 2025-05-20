@@ -108,6 +108,7 @@ function detectFormFields() {
   return fields.map(f => ({uniqueId: f.uniqueId, originalId: f.originalId, type: f.type, label: f.label })); 
 }
 
+//****************************************************************** */
 function retrieveField(type, id, name) {
   if (type !== "textarea") {
     type = `input[type='${type}']`;

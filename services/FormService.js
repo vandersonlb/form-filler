@@ -1,7 +1,6 @@
 export default class FormService {
   static async getFormFromActiveTab() {
-    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-
+    const [tab] = await FormService.getActiveTab();
     return new Promise((resolve) => {
       chrome.tabs.sendMessage(tab.id, { action: "scanForForm" }, (response) => {
         if (chrome.runtime.lastError) {
@@ -14,8 +13,7 @@ export default class FormService {
   }
 
   static async getFieldFromActiveTab(payload) {
-    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-
+    const [tab] = await FormService.getActiveTab();
     return new Promise((resolve) => {
       chrome.tabs.sendMessage(tab.id, { action: "getField", payload }, (response) => {
         if (chrome.runtime.lastError) {
@@ -25,5 +23,9 @@ export default class FormService {
         }
       });
     });
+  }
+
+  static async getActiveTab() {
+    return await chrome.tabs.query({ active: true, currentWindow: true });
   }
 }
